@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bob Ross</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+
+:root{
+  --gold:#c9a96e;
+  --gold-light:rgba(201,169,110,.15);
+  --cream:#f5f0e8;
+  --dark:#080807;
+  --mid:#1a1a16;
+  --text:rgba(245,240,232,.78);
+  --text-dim:rgba(245,240,232,.38);
+  --text-dimmer:rgba(245,240,232,.22);
+}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--dark);
+  color:var(--cream);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ NAV ═══ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:48px;
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(1.5rem,4vw,3.5rem);
+  background:rgba(8,8,7,0);
+  transition:background .4s, backdrop-filter .4s;
+}
+.nav.scrolled{
+  background:rgba(8,8,7,.82);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid rgba(245,240,232,.06);
+}
+.nav a{
+  font-size:.72rem;
+  font-weight:300;
+  letter-spacing:.08em;
+  color:var(--text-dim);
+  text-decoration:none;
+  transition:color .25s;
+  white-space:nowrap;
+}
+.nav a:hover{color:var(--cream)}
+.nav-logo{
+  font-family:'Playfair Display',serif;
+  font-size:.85rem;
+  font-weight:400;
+  color:var(--gold);
+  letter-spacing:.12em;
+}
+
+/* mobile nav */
+@media(max-width:640px){
+  .nav{
+    gap:1.2rem;
+    padding:0 1rem;
+    overflow-x:auto;
+    scrollbar-width:none;
+    justify-content:flex-start;
+  }
+  .nav::-webkit-scrollbar{display:none}
+  .nav-logo{display:none}
+}
+
+/* ═══ HERO ═══ */
+.hero{
+  position:relative;
+  height:100svh;min-height:600px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  overflow:hidden;
+  background:url('images/hero.jpg') center/cover no-repeat var(--dark);
+}
+.hero-overlay{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(to bottom, rgba(8,8,7,.55) 0%, rgba(8,8,7,.15) 40%, rgba(8,8,7,.6) 80%, rgba(8,8,7,1) 100%);
+}
+.hero-inner{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:0 1.5rem;
+}
+.hero-eyebrow{
+  font-size:clamp(.62rem,.9vw,.72rem);
+  font-weight:300;
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:1.8rem;
+  opacity:0;
+  animation:fadeUp .9s .3s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(4.5rem,14vw,11rem);
+  font-weight:300;
+  line-height:.92;
+  letter-spacing:-.01em;
+  color:var(--cream);
+  opacity:0;
+  animation:fadeUp 1s .5s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-title em{
+  display:block;
+  font-style:italic;
+  color:var(--gold);
+  font-size:.65em;
+}
+.hero-sub{
+  margin-top:2rem;
+  font-size:clamp(.8rem,1.5vw,.95rem);
+  font-weight:200;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  opacity:0;
+  animation:fadeUp .9s .75s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-scroll{
+  position:absolute;bottom:2.5rem;left:50%;
+  transform:translateX(-50%);
+  z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:.6rem;
+  opacity:0;
+  animation:fadeIn 1s 1.4s forwards;
+}
+.hero-scroll span{
+  font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--text-dimmer);
+}
+.scroll-arrow{
+  width:1px;height:36px;
+  background:linear-gradient(to bottom,var(--gold),transparent);
+  animation:scrollBob 2s ease-in-out infinite;
+}
+
+/* ═══ SECTION GÉNÉRIQUE (style Apple) ═══ */
+/* Chaque section = plein écran, photo en fond, texte centré qui emerge */
+.chapter{
+  position:relative;
+  min-height:100svh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  overflow:hidden;
+}
+.chapter-bg{
+  position:absolute;inset:0;
+  background:center/cover no-repeat var(--mid);
+  will-change:transform;
+}
+/* Overlay : dégradé du bas pour faire ressortir le texte */
+.chapter-overlay{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 60%, rgba(8,8,7,.05) 0%, rgba(8,8,7,.7) 100%),
+    linear-gradient(to bottom, rgba(8,8,7,.5) 0%, rgba(8,8,7,.1) 30%, rgba(8,8,7,.1) 60%, rgba(8,8,7,.85) 100%);
+}
+.chapter-inner{
+  position:relative;z-index:2;
+  max-width:min(680px,90vw);
+  padding:clamp(5rem,12vh,9rem) 0;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* Numéro + label en ligne */
+.ch-meta{
+  display:flex;align-items:center;gap:.9rem;
+  margin-bottom:1.4rem;
+}
+.ch-num{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.1rem,2vw,1.4rem);
+  font-weight:300;
+  font-style:italic;
+  color:var(--gold);
+  opacity:.7;
+}
+.ch-dot{
+  width:3px;height:3px;
+  border-radius:50%;
+  background:var(--gold);
+  opacity:.5;
+}
+.ch-label{
+  font-size:clamp(.58rem,.8vw,.65rem);
+  font-weight:300;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  opacity:.8;
+}
+
+.ch-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.8rem,7vw,5.5rem);
+  font-weight:300;
+  line-height:1.06;
+  letter-spacing:-.01em;
+  color:var(--cream);
+  margin-bottom:2.4rem;
+}
+.ch-title em{font-style:italic;color:var(--gold)}
+
+/* Séparateur */
+.ch-rule{
+  width:32px;height:1px;
+  background:var(--gold);
+  opacity:.6;
+  margin-bottom:2.4rem;
+}
+
+/* Faits : centrés, espacés */
+.ch-facts{
+  display:flex;flex-direction:column;
+  gap:1.4rem;
+  width:100%;
+}
+.ch-fact{
+  font-size:clamp(.88rem,1.5vw,1.02rem);
+  font-weight:200;
+  line-height:1.75;
+  color:var(--text);
+  letter-spacing:.01em;
+}
+.ch-fact strong{font-weight:400;color:var(--cream)}
+.ch-fact em{font-style:italic;color:rgba(201,169,110,.9)}
+
+/* Citation en bas */
+.ch-quote{
+  margin-top:2.8rem;
+  max-width:480px;
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:clamp(.9rem,1.6vw,1.08rem);
+  font-weight:300;
+  color:var(--text-dim);
+  line-height:1.7;
+  letter-spacing:.02em;
+}
+
+/* ═══ SECTION FAMOUS WORKS ═══ */
+.works-section{
+  background:var(--mid);
+  padding:clamp(5rem,10vh,8rem) clamp(1.5rem,5vw,5rem);
+}
+.works-header{
+  text-align:center;
+  margin-bottom:clamp(3rem,6vh,5rem);
+}
+.works-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:auto auto;
+  gap:2px;
+  max-width:1200px;
+  margin:0 auto;
+}
+@media(max-width:700px){
+  .works-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .wc-tall{grid-row:span 1}
+}
+@media(max-width:420px){
+  .works-grid{grid-template-columns:1fr}
+  .wc-tall{grid-row:span 1}
+}
+.wc{
+  position:relative;
+  aspect-ratio:4/3;
+  overflow:hidden;
+  background:#111;
+}
+.wc-tall{grid-row:span 2;aspect-ratio:auto}
+.wc-bg{
+  position:absolute;inset:0;
+  background:center/cover no-repeat #111;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
+}
+.wc:hover .wc-bg{transform:scale(1.04)}
+.wc-info{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(8,8,7,.9) 0%,transparent 50%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:1.4rem 1.6rem;
+  opacity:0;
+  transition:opacity .35s;
+}
+.wc:hover .wc-info{opacity:1}
+.wc-title{
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-weight:300;
+  font-size:clamp(.9rem,1.8vw,1rem);
+  color:var(--cream);margin-bottom:.25rem;
+}
+.wc-sub{
+  font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gold);font-weight:300;
+}
+.works-note{
+  text-align:center;
+  margin-top:clamp(2rem,4vh,3.5rem);
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-weight:300;
+  font-size:clamp(.85rem,1.5vw,1rem);
+  color:var(--text-dimmer);
+}
+
+/* ═══ FOOTER ═══ */
+.footer{
+  background:var(--dark);
+  border-top:1px solid rgba(245,240,232,.06);
+  padding:clamp(4rem,8vh,6rem) 2rem;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:1.2rem;
+}
+.footer-quote{
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-weight:300;
+  font-size:clamp(1.1rem,2.5vw,1.6rem);
+  color:var(--gold);
+  max-width:560px;line-height:1.55;
+}
+.footer-by{
+  font-size:.62rem;font-weight:300;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--text-dimmer);
+}
+.footer-rule{
+  width:24px;height:1px;
+  background:rgba(201,169,110,.3);
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(28px)}
+  to{opacity:1;transform:none}
+}
+@keyframes fadeIn{
+  from{opacity:0}to{opacity:1}
+}
+@keyframes scrollBob{
+  0%,100%{opacity:.3;transform:scaleY(.8)}
+  50%{opacity:.8;transform:scaleY(1)}
+}
+
+/* Scroll reveal générique */
+.reveal{
+  opacity:0;transform:translateY(32px);
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);
+}
+.reveal.d1{transition-delay:.1s}
+.reveal.d2{transition-delay:.2s}
+.reveal.d3{transition-delay:.32s}
+.reveal.d4{transition-delay:.44s}
+.reveal.d5{transition-delay:.56s}
+.reveal.d6{transition-delay:.68s}
+.reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="nav" id="nav">
+  <span class="nav-logo">Bob Ross</span>
+  <a href="#s1">Birth &amp; Death</a>
+  <a href="#s2">Early Career</a>
+  <a href="#s3">Technique</a>
+  <a href="#s4">Famous Works</a>
+</nav>
+
+<!-- ══ HERO ══ -->
+<!-- image/hero.jpg : portrait Bob Ross, ou grande peinture -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow">The Joy of Painting · A Biography</p>
+    <h1 class="hero-title">Bob<em>Ross</em></h1>
+    <p class="hero-sub">American Painter &amp; Television Host</p>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ══ S1 — BIRTH & DEATH ══ -->
+<!-- images/birth.jpg : paysage Florida, coucher de soleil, tons chauds -->
+<section class="chapter" id="s1">
+  <div class="chapter-bg" style="background-image:url('images/birth.jpg')"></div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-inner">
+    <div class="ch-meta reveal">
+      <span class="ch-num">01</span>
+      <span class="ch-dot"></span>
+      <span class="ch-label">Biography</span>
+    </div>
+    <h2 class="ch-title reveal d1">Birth &amp; <em>Death</em></h2>
+    <div class="ch-rule reveal d2"></div>
+    <div class="ch-facts">
+      <p class="ch-fact reveal d2">Born <strong>October 29, 1942</strong> in Daytona Beach, Florida</p>
+      <p class="ch-fact reveal d3">Died <strong>July 4, 1995</strong> in Orlando, Florida — age 52</p>
+      <p class="ch-fact reveal d4">Famous American <strong>painter</strong> and <strong>TV presenter</strong></p>
+    </div>
+    <p class="ch-quote reveal d5">His paintings were considered masterpieces — a quiet legacy that endures long after his passing.</p>
+  </div>
+</section>
+
+<!-- ══ S2 — EARLY CAREER ══ -->
+<!-- images/alaska.jpg : Alaska, montagnes enneigées, aurores boréales -->
+<section class="chapter" id="s2">
+  <div class="chapter-bg" style="background-image:url('images/alaska.jpg')"></div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-inner">
+    <div class="ch-meta reveal">
+      <span class="ch-num">02</span>
+      <span class="ch-dot"></span>
+      <span class="ch-label">Beginnings</span>
+    </div>
+    <h2 class="ch-title reveal d1"><em>Early</em> Career</h2>
+    <div class="ch-rule reveal d2"></div>
+    <div class="ch-facts">
+      <p class="ch-fact reveal d2">Worked as a <strong>carpenter</strong> alongside his father</p>
+      <p class="ch-fact reveal d3">Joined the <strong>U.S. Air Force</strong> at age 18</p>
+      <p class="ch-fact reveal d4">Discovered painting while <strong>stationed in Alaska</strong> — its wilderness changed everything</p>
+    </div>
+    <p class="ch-quote reveal d5">Alaska's vast, cold landscapes gave Ross his lifelong love of mountains, forests and still waters.</p>
+  </div>
+</section>
+
+<!-- ══ S3 — INFLUENCE & TECHNIQUE ══ -->
+<!-- images/technique.jpg : Bob Ross en train de peindre, pinceau, palette -->
+<section class="chapter" id="s3">
+  <div class="chapter-bg" style="background-image:url('images/technique.jpg')"></div>
+  <div class="chapter-overlay"></div>
+  <div class="chapter-inner">
+    <div class="ch-meta reveal">
+      <span class="ch-num">03</span>
+      <span class="ch-dot"></span>
+      <span class="ch-label">Craft</span>
+    </div>
+    <h2 class="ch-title reveal d1">Influence &amp; <em>Technique</em></h2>
+    <div class="ch-rule reveal d2"></div>
+    <div class="ch-facts">
+      <p class="ch-fact reveal d2">Inspired by painter <strong>Bill Alexander</strong>, who taught him the <em>wet-on-wet</em> oil painting technique</p>
+      <p class="ch-fact reveal d3">Used his <strong>calm, soothing voice</strong> and positive attitude to teach painting on television</p>
+      <p class="ch-fact reveal d4">His style — <em>"happy little trees"</em> — made art <strong>accessible to everyone</strong></p>
+    </div>
+    <p class="ch-quote reveal d5">Wet-on-wet: blending colors directly on the canvas without waiting — spontaneous, natural, alive.</p>
+  </div>
+</section>
+
+<!-- ══ S4 — FAMOUS WORKS ══ -->
+<!-- images/work1.jpg à work5.jpg : tableaux de Bob Ross -->
+<section class="works-section" id="s4">
+  <div class="works-header">
+    <div class="ch-meta reveal" style="justify-content:center">
+      <span class="ch-num">04</span>
+      <span class="ch-dot"></span>
+      <span class="ch-label">Legacy</span>
+    </div>
+    <h2 class="ch-title reveal d1" style="margin-bottom:0">Famous <em>Works</em></h2>
+  </div>
+
+  <div class="works-grid reveal d2">
+    <div class="wc wc-tall">
+      <div class="wc-bg" style="background-image:url('images/work1.jpg')"></div>
+      <div class="wc-info">
+        <p class="wc-title">The Joy of Painting</p>
+        <p class="wc-sub">31 seasons · 1983–1994</p>
+      </div>
+    </div>
+    <div class="wc">
+      <div class="wc-bg" style="background-image:url('images/work2.jpg')"></div>
+      <div class="wc-info">
+        <p class="wc-title">Mountain landscapes</p>
+        <p class="wc-sub">Signature motif</p>
+      </div>
+    </div>
+    <div class="wc">
+      <div class="wc-bg" style="background-image:url('images/work3.jpg')"></div>
+      <div class="wc-info">
+        <p class="wc-title">Peaceful forests</p>
+        <p class="wc-sub">Happy little trees</p>
+      </div>
+    </div>
+    <div class="wc">
+      <div class="wc-bg" style="background-image:url('images/work4.jpg')"></div>
+      <div class="wc-info">
+        <p class="wc-title">Still waters &amp; cabins</p>
+        <p class="wc-sub">Nature at rest</p>
+      </div>
+    </div>
+    <div class="wc">
+      <div class="wc-bg" style="background-image:url('images/work5.jpg')"></div>
+      <div class="wc-info">
+        <p class="wc-title">Pop culture legacy</p>
+        <p class="wc-sub">After his death</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="works-note reveal d3">Over 1,000 paintings completed on air — each in under 30 minutes.</p>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="footer-rule"></div>
+  <p class="footer-quote">"We don't make mistakes, just happy little accidents."</p>
+  <p class="footer-by">Bob Ross · 1942 – 1995</p>
+</footer>
+
+<script>
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+}, {passive:true});
+
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, {threshold: 0.14});
+revealEls.forEach(el => revealObs.observe(el));
+
+// Parallax doux sur les bg (desktop)
+const mq = window.matchMedia('(min-width:700px) and (prefers-reduced-motion:no-preference)');
+if (mq.matches) {
+  const bgs = document.querySelectorAll('.chapter-bg');
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        bgs.forEach(bg => {
+          const r = bg.parentElement.getBoundingClientRect();
+          const pct = r.top / window.innerHeight;
+          bg.style.transform = `translateY(${pct * -30}px) scale(1.08)`;
+        });
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, {passive:true});
+  // init scale pour éviter les bords blancs
+  bgs.forEach(bg => bg.style.transform = 'scale(1.08)');
+}
+
+// Smooth scroll nav
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+</script>
+</body>
+</html>
